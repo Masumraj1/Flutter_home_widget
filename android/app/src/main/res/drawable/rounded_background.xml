@@ -1,0 +1,6 @@
+<!-- res/drawable/rounded_background.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#141A26"/> <!-- ব্যাকগ্রাউন্ড কালার সেট করুন -->
+    <corners android:radius="16dp"/> <!-- এখানে রেডিয়াস সেট করুন -->
+    <padding android:left="12dp" android:top="12dp" android:right="12dp" android:bottom="12dp"/>
+</shape>
