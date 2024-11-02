@@ -217,3 +217,23 @@ package com.example.tests
         job?.cancel()
     }
     }
+# 5. Update AndroidManifest.xml
+    <receiver android:name="HomeScreenWidgetProvider"
+    android:exported="true">
+    <intent-filter>
+    <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+    </intent-filter>
+    <meta-data android:name="android.appwidget.provider"
+    android:resource="@xml/widget_info" />
+    </receiver>
+
+        <receiver android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="es.antonborri.home_widget.action.BACKGROUND" />
+            </intent-filter>
+        </receiver>
+
+        <service android:name="es.antonborri.home_widget.HomeWidgetBackgroundService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="true"/>
