@@ -17,7 +17,7 @@ Future<void> fetchProductData() async {
   if (response.statusCode == 200) {
     final products = json.decode(response.body);
 
-    // Save products as JSON strings in HomeWidget
+    ///===========>>>>>>>>>>>>>> Save products as JSON strings in HomeWidget<<<<<<<<<<<<<<<<<============
     await HomeWidget.saveWidgetData<String>('products', json.encode(products));
     await HomeWidget.saveWidgetData<int>('productIndex', 0); // Set the initial index to 0
     await HomeWidget.updateWidget(
