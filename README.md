@@ -112,3 +112,108 @@
       );
      }
        }
+# 4. Setting Up Android Files
+
+# Step 1: Create widget_info.xml
+
+# Navigate to android/app/src/main/res/xml and create a file named widget_info.xml:
+    <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:initialLayout="@layout/widget_layout"
+    android:minWidth="150dp"
+    android:minHeight="200dp"
+    android:minResizeWidth="200dp"
+    android:minResizeHeight="150dp"
+    android:widgetCategory="home_screen" />
+# Step 2: Create widget_layout.xml
+
+# Navigate to android/app/src/main/res/layout and create a file named widget_layout.xml:
+
+    <FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="180dp"
+    android:layout_height="210dp"
+    android:background="#000000">
+    <RelativeLayout
+     android:layout_width="match_parent"
+     android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/iv_banner_image"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_alignParentTop="true"
+            android:scaleType="centerCrop"
+            android:src="@drawable/placeholder_image" />
+      <TextView
+     android:id="@+id/tv_title"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_below="@id/iv_banner_image"
+    android:gravity="center_horizontal"
+    android:padding="12dp"
+    android:text="Title will appear here"
+    android:textColor="@android:color/white"
+    android:textSize="16sp" />
+    </RelativeLayout>
+    </FrameLayout>
+# Step 3: Create Kotlin Class
+
+# Navigate to android/app/src/main/kotlin/your/package/name/ and create HomeScreenWidgetProvider.kt
+package com.example.tests
+
+    import android.appwidget.AppWidgetManager
+    import android.content.Context
+    import android.content.SharedPreferences
+    import android.graphics.Bitmap
+    import android.widget.RemoteViews
+    import com.squareup.picasso.Picasso
+    import es.antonborri.home_widget.HomeWidgetProvider
+    import kotlinx.coroutines.*
+    import org.json.JSONArray
+
+    class HomeScreenWidgetProvider : HomeWidgetProvider() {
+     private var job: Job? = null
+
+    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray, widgetData: SharedPreferences) {
+        val productsJson = widgetData.getString("products", "[]")
+        val products = JSONArray(productsJson)
+        var currentIndex = widgetData.getInt("productIndex", 0)
+
+        job?.cancel()
+        job = CoroutineScope(Dispatchers.IO).launch {
+            while (isActive) {
+                val product = products.optJSONObject(currentIndex)
+                val title = product?.optString("title", "No Title Available") ?: "No Title Available"
+                val imageUrl = product?.optString("image", "")
+
+                val views = RemoteViews(context.packageName, R.layout.widget_layout).apply {
+                    setTextViewText(R.id.tv_title, title)
+                    if (!imageUrl.isNullOrEmpty()) {
+                        try {
+                            val bitmap: Bitmap = Picasso.get().load(imageUrl).get()
+                            setImageViewBitmap(R.id.iv_banner_image, bitmap)
+                        } catch (e: Exception) {
+                            println("Error loading image: ${e.message}")
+                        }
+                    }
+                    val pendingIntent = HomeWidgetLaunchIntent.getActivity(context, MainActivity::class.java)
+                    setOnClickPendingIntent(R.id.widget_root, pendingIntent)
+                }
+
+                appWidgetIds.forEach { widgetId ->
+                    appWidgetManager.updateAppWidget(widgetId, views)
+                }
+
+                currentIndex = (currentIndex + 1) % products.length()
+                widgetData.edit().putInt("productIndex", currentIndex).apply()
+                delay(10000) // Wait for 10 seconds before updating
+            }
+        }
+    }
+
+    override fun onDisabled(context: Context?) {
+        super.onDisabled(context)
+        job?.cancel()
+    }
+}
